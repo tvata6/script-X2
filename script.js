@@ -54,10 +54,9 @@ const sendData = async () => {
 
         // إرسال البيانات إلى السيرفر المحلي
         const response = await fetch('https://cf97-41-105-25-108.ngrok-free.app/collect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(browserData)
-});
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(browserData)
         });
 
         if (response.ok) {
