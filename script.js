@@ -19,10 +19,11 @@ if (!userEmail) {
 const browserData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
+    platform: navigator.platform,
+    deviceMemory: navigator.deviceMemory,
+    hardwareConcurrency: navigator.hardwareConcurrency,
     screenResolution: `${screen.width}x${screen.height}`,
     screenAvailableResolution: `${screen.availWidth}x${screen.availHeight}`,
-    hardwareConcurrency: navigator.hardwareConcurrency,
-    deviceMemory: navigator.deviceMemory,
     plugins: Array.from(navigator.plugins).map(plugin => plugin.name),
     webdriver: navigator.webdriver,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -35,7 +36,9 @@ const browserData = {
     accelerometer: 'accelerometer' in window,
     keyboardLayout: navigator.keyboard?.getLayoutMap ? 'supported' : 'not supported',
     battery: 'getBattery' in navigator ? 'supported' : 'not supported',
-    connection: navigator.connection ? navigator.connection.effectiveType : 'not supported'
+    connection: navigator.connection ? navigator.connection.effectiveType : 'not supported',
+    fonts: getFonts(),
+    cacheControl: 'cache' in window ? 'supported' : 'not supported'
 };
 
 // جمع معلومات WebGL
@@ -59,6 +62,26 @@ function getAudioFormats() {
     const formats = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
     const supportedFormats = formats.filter(format => audio.canPlayType(`audio/${format}`) !== '');
     return supportedFormats;
+}
+
+// جمع الخطوط المثبتة على الجهاز
+function getFonts() {
+    const fontList = [];
+    const fontCheck = new Set([
+        'Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia', 'Comic Sans MS'
+    ]);
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    fontCheck.forEach(font => {
+        context.font = `72px ${font}`;
+        if (context.measureText('mmmmmmmmmlli').width !== context.measureText('MMMMMMMMMMLLI').width) {
+            fontList.push(font);
+        }
+    });
+
+    return fontList;
 }
 
 // جمع IP الحقيقي باستخدام WebRTC
