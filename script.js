@@ -14,7 +14,7 @@ if (!userEmail) {
     localStorage.setItem('userEmail', userEmail);
 }
 
-// جمع بيانات إضافية من المتصفح
+// جمع بيانات المتصفح
 const browserData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
@@ -28,7 +28,7 @@ const browserData = {
     connectionType: navigator.connection ? navigator.connection.effectiveType : "unknown",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     doNotTrack: navigator.doNotTrack,
-    email: userEmail // استخدام الإيميل الفريد
+    email: userEmail
 };
 
 // جمع IP باستخدام WebRTC وخدمة خارجية
@@ -85,6 +85,10 @@ const sendData = async () => {
     }
 };
 
+// جمع البيانات تلقائيًا عند تحميل الصفحة
+window.addEventListener('load', () => {
+    console.log('تم تحميل الصفحة وجمع البيانات الأولية');
+});
+
 // إضافة حدث النقر على زر الموافقة
 document.getElementById('consentButton').addEventListener('click', sendData);
-
