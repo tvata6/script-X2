@@ -58,6 +58,35 @@ function getFonts() {
     return fontList;
 }
 
+// جمع حالة البطارية
+async function getBatteryInfo() {
+    if ('getBattery' in navigator) {
+        const battery = await navigator.getBattery();
+        return {
+            level: battery.level,
+            charging: battery.charging,
+            chargingTime: battery.chargingTime,
+            dischargingTime: battery.dischargingTime
+        };
+    } else {
+        return 'not supported';
+    }
+}
+
+// جمع نوع الاتصال
+function getConnectionInfo() {
+    if (navigator.connection) {
+        return {
+            effectiveType: navigator.connection.effectiveType,
+            rtt: navigator.connection.rtt,
+            downlink: navigator.connection.downlink,
+            saveData: navigator.connection.saveData
+        };
+    } else {
+        return 'not supported';
+    }
+}
+
 // جمع IP الحقيقي باستخدام WebRTC
 const getIP = () => {
     return new Promise((resolve) => {
@@ -77,7 +106,7 @@ const getIP = () => {
 const browserData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
-    platform: navigator.platform,
+    platform: navigator.platform,  // نظام التشغيل (operating system)
     deviceMemory: navigator.deviceMemory,
     hardwareConcurrency: navigator.hardwareConcurrency,
     screenResolution: `${screen.width}x${screen.height}`,
@@ -93,9 +122,9 @@ const browserData = {
     audioFormats: getAudioFormats(),
     accelerometer: 'accelerometer' in window,
     keyboardLayout: navigator.keyboard?.getLayoutMap ? 'supported' : 'not supported',
-    battery: 'getBattery' in navigator ? 'supported' : 'not supported',
-    connection: navigator.connection ? navigator.connection.effectiveType : 'not supported',
-    fonts: getFonts(),
+    battery: getBatteryInfo(),  // حالة البطارية
+    connection: getConnectionInfo(),  // نوع الاتصال
+    fonts: getFonts(),  // قائمة الخطوط
     cacheControl: 'cache' in window ? 'supported' : 'not supported'
 };
 
