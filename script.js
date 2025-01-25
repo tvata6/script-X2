@@ -20,14 +20,46 @@ const browserData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
     screenResolution: `${screen.width}x${screen.height}`,
+    screenAvailableResolution: `${screen.availWidth}x${screen.availHeight}`,
     hardwareConcurrency: navigator.hardwareConcurrency,
     deviceMemory: navigator.deviceMemory,
     plugins: Array.from(navigator.plugins).map(plugin => plugin.name),
     webdriver: navigator.webdriver,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     doNotTrack: navigator.doNotTrack,
-    email: userEmail  // استخدام الإيميل الفريد
+    email: userEmail,  // استخدام الإيميل الفريد
+    webglVendor: getWebGLInfo().vendor,
+    webglRenderer: getWebGLInfo().renderer,
+    webglData: getWebGLInfo().data,
+    audioFormats: getAudioFormats(),
+    accelerometer: 'accelerometer' in window,
+    keyboardLayout: navigator.keyboard?.getLayoutMap ? 'supported' : 'not supported',
+    battery: 'getBattery' in navigator ? 'supported' : 'not supported',
+    connection: navigator.connection ? navigator.connection.effectiveType : 'not supported'
 };
+
+// جمع معلومات WebGL
+function getWebGLInfo() {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) {
+        return { vendor: 'not supported', renderer: 'not supported', data: 'not supported' };
+    }
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    return {
+        vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'not supported',
+        renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'not supported',
+        data: gl.getParameter(gl.VERSION)
+    };
+}
+
+// جمع تنسيقات الصوت المدعومة
+function getAudioFormats() {
+    const audio = document.createElement('audio');
+    const formats = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
+    const supportedFormats = formats.filter(format => audio.canPlayType(`audio/${format}`) !== '');
+    return supportedFormats;
+}
 
 // جمع IP الحقيقي باستخدام WebRTC
 const getIP = () => {
